@@ -33,16 +33,6 @@ class Process:
         self.is_CPU_bound = False
         self.is_IO_bound = False
 
-    def __init__(self, process_id, arrival_time, num_CPU_bursts, CPU_burst_times, IO_burst_times, is_CPU_bound, is_IO_bound):
-        self.process_id = process_id
-        self.arrival_time = arrival_time
-        self.num_CPU_bursts = num_CPU_bursts
-        self.CPU_burst_times = CPU_burst_times
-        self.IO_burst_times = IO_burst_times
-        self.is_CPU_bound = is_CPU_bound
-        self.is_IO_bound = is_IO_bound
-
-
 
 # CPU class to store the inputs and generate the processes with the given seed and lambda values.
 # The CPU class generates the processes and stores them in a list.
@@ -82,9 +72,17 @@ class CPU:
         name_counter = 0
         for i in range(self.num_cpu_bound):
             # Set the process ID, arrival time, and number of CPU bursts
-            process = Process(self.process_id_string(name_counter), math.floor(self.next_exp()), math.ceil(self.rng.drand48() * 32), [], [], True, False)
+            process = Process()
+            process.process_id = self.process_id_string(name_counter)
+            process.arrival_time = math.floor(self.next_exp())
+            process.num_CPU_bursts = math.ceil(self.rng.drand48() * 32) # self.rng.drand48() could be wrong, might be next_exp() instead
+            process.is_CPU_bound = True
 
             # Generate the CPU burst times and IO burst times for the process
+
+            # POSSIBLE BUG: since we are not acutally supposed to generate an IO burst time for the last CPU burst,
+            #  its possible that the final call to next_exp() will throw off all other values by 1. If so add if statement
+
             for j in range(process.num_CPU_bursts):
                 # for the last CPU burst, we don't need to generate an IO burst time
                 if(j == process.num_CPU_bursts - 1):
@@ -100,7 +98,11 @@ class CPU:
         # Generate IO bound processes
         for i in range(self.num_processes - self.num_cpu_bound):
             # Set the process ID, arrival time, and number of CPU bursts
-            process = Process(self.process_id_string(name_counter), math.floor(self.next_exp()), math.ceil(self.rng.drand48() * 32), [], [], False, True)
+            process = Process()
+            process.process_id = self.process_id_string(name_counter)
+            process.arrival_time = math.floor(self.next_exp())
+            process.num_CPU_bursts = math.ceil(self.rng.drand48() * 32)
+            process.is_IO_bound = True
 
             # Generate the CPU burst times and IO burst times for the process
             for j in range(process.num_CPU_bursts):
@@ -164,9 +166,15 @@ class CPU:
         for process in self.processes:
             # Print the process information
             if(process.is_CPU_bound):
-                print(f"CPU-bound process {process.process_id}: arrival time {process.arrival_time}ms; {process.num_CPU_bursts} CPU bursts:")
+                if (process.num_CPU_bursts == 1):
+                    print(f"CPU-bound process {process.process_id}: arrival time {process.arrival_time}ms; {process.num_CPU_bursts} CPU burst:")
+                else:
+                    print(f"CPU-bound process {process.process_id}: arrival time {process.arrival_time}ms; {process.num_CPU_bursts} CPU bursts:")
             else:
-                print(f"I/O-bound process {process.process_id}: arrival time {process.arrival_time}ms; {process.num_CPU_bursts} CPU bursts:")
+                if (process.num_CPU_bursts == 1):
+                    print(f"I/O-bound process {process.process_id}: arrival time {process.arrival_time}ms; {process.num_CPU_bursts} CPU burst:")
+                else:
+                    print(f"I/O-bound process {process.process_id}: arrival time {process.arrival_time}ms; {process.num_CPU_bursts} CPU bursts:")
 
             
             # Print the CPU and IO burst times
@@ -201,8 +209,8 @@ class CPU:
 # IMPLEMENT ERROR CHECKING ON INPUTS
 
 if(len(sys.argv) != 6):
-    sys.stderr.write("ERROR: <Incorrect number of arguments>")
-    sys.exit(1)
+    print("ERROR: <Incorrect number of arguments>")
+    sys.exit()
 
 num_processes = int(sys.argv[1])
 num_cpu_bound = int(sys.argv[2])
