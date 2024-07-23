@@ -84,8 +84,12 @@ class CPU:
             #  its possible that the final call to next_exp() will throw off all other values by 1. If so add if statement
 
             for j in range(process.num_CPU_bursts):
-                process.CPU_burst_times.append(math.ceil(self.next_exp()) * 4) # CPU bound
-                process.IO_burst_times.append(math.ceil(self.next_exp()))
+                # for the last CPU burst, we don't need to generate an IO burst time
+                if(j == process.num_CPU_bursts - 1):
+                    process.CPU_burst_times.append(math.ceil(self.next_exp()) * 4) # CPU bound
+                else:
+                    process.CPU_burst_times.append(math.ceil(self.next_exp()) * 4) # CPU bound
+                    process.IO_burst_times.append(math.ceil(self.next_exp()))
 
             # Add to list and increment the name counter
             self.processes.append(process)
@@ -97,13 +101,16 @@ class CPU:
             process = Process()
             process.process_id = self.process_id_string(name_counter)
             process.arrival_time = math.floor(self.next_exp())
-            process.num_CPU_bursts = math.ceil(self.rng.drand48() * self.upper_bound)
+            process.num_CPU_bursts = math.ceil(self.rng.drand48() * 32)
             process.is_IO_bound = True
 
             # Generate the CPU burst times and IO burst times for the process
             for j in range(process.num_CPU_bursts):
-                process.CPU_burst_times.append(math.ceil(self.next_exp()))
-                process.IO_burst_times.append(math.ceil(self.next_exp()) * 8) # IO bound
+                if(j == process.num_CPU_bursts - 1):
+                    process.CPU_burst_times.append(math.ceil(self.next_exp()))
+                else:
+                    process.CPU_burst_times.append(math.ceil(self.next_exp()))
+                    process.IO_burst_times.append(math.ceil(self.next_exp()) * 8) # IO bound
 
             # Add to list and increment the name counter
             self.processes.append(process)
@@ -163,14 +170,14 @@ class CPU:
             else:
                 print(f"I/O-bound process {process.process_id}: arrival time {process.arrival_time}ms; {process.num_CPU_bursts} CPU bursts:")
 
-            """
+            
             # Print the CPU and IO burst times
             for i in range(len(process.CPU_burst_times)):
                 if(i == len(process.CPU_burst_times) - 1):
                     print(f"==> CPU burst {process.CPU_burst_times[i]}ms")
                 else:
                     print(f"==> CPU burst {process.CPU_burst_times[i]}ms ==> I/O burst {process.IO_burst_times[i]}ms")
-            """
+            
 
     # returns the A0 - Z9 string representation of the process
     def process_id_string(self, process_number):
