@@ -151,7 +151,7 @@ class CPU:
                 overall_avg_cpu_burst_time = io_bound_avg_cpu_burst_time
                 cpu_bound_avg_io_burst_time = 0
                 io_bound_avg_io_burst_time = sum_io_bound_io_burst_time / sum([len(process.IO_burst_times) for process in self.processes if process.is_IO_bound])
-                overall_avg_io_burst_time = io_bound_avg_cpu_burst_time
+                overall_avg_io_burst_time = io_bound_avg_io_burst_time
             else:
                 cpu_bound_avg_cpu_burst_time = sum_cpu_bound_cpu_burst_time / sum([len(process.CPU_burst_times) for process in self.processes if process.is_CPU_bound])
                 io_bound_avg_cpu_burst_time = sum_io_bound_cpu_burst_time / sum([len(process.CPU_burst_times) for process in self.processes if process.is_IO_bound])
