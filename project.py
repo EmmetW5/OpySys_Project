@@ -196,8 +196,8 @@ class CPU:
 # IMPLEMENT ERROR CHECKING ON INPUTS
 
 if(len(sys.argv) != 6):
-    print("ERROR: <Incorrect number of arguments>")
-    sys.exit()
+    sys.stderr.write("ERROR: <Incorrect number of arguments>")
+    sys.exit(1)
 
 num_processes = int(sys.argv[1])
 num_cpu_bound = int(sys.argv[2])
