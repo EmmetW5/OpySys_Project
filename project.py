@@ -24,14 +24,6 @@ class RandomNumberGenerator:
 # Storing this for each process allows for easy access to the process information for the simulation.
 # And presumably whatever else we are going to have to do.
 class Process:
-    def __init__(self):
-        self.process_id = ""
-        self.arrival_time = 0
-        self.num_CPU_bursts = 0
-        self.CPU_burst_times = []
-        self.IO_burst_times = []
-        self.is_CPU_bound = False
-        self.is_IO_bound = False
 
     def __init__(self, process_id, arrival_time, num_CPU_bursts, CPU_burst_times, IO_burst_times, is_CPU_bound, is_IO_bound):
         self.process_id = process_id
@@ -41,7 +33,6 @@ class Process:
         self.IO_burst_times = IO_burst_times
         self.is_CPU_bound = is_CPU_bound
         self.is_IO_bound = is_IO_bound
-
 
 
 # CPU class to store the inputs and generate the processes with the given seed and lambda values.
@@ -136,25 +127,53 @@ class CPU:
         #       versus total elapsed simulation time.
         pass
 
-    # IMPLEMENT ME
     # Writes the summary statistics to the output file in the required format
     def write_output(self):
         filepath = "simout.txt"
         with open(filepath, 'w') as file:
             # Write the summary statistics to the file
-            file.write(f"number of processes: {self.num_processes}\n")
-            file.write(f"number of CPU-bound processes: {self.num_cpu_bound}\n")
-            file.write(f"number of I/O-bound processes: {self.num_processes - self.num_cpu_bound}\n")
+            file.write(f"-- number of processes: {self.num_processes}\n")
+            file.write(f"-- number of CPU-bound processes: {self.num_cpu_bound}\n")
+            file.write(f"-- number of I/O-bound processes: {self.num_processes - self.num_cpu_bound}\n")
 
-            # IMPLEMENT ME
-            print("IMPLEMENT ME - write_output()")
+            # Calculate the average burst times 
+            sum_cpu_bound_cpu_burst_time = sum([sum(process.CPU_burst_times) for process in self.processes if process.is_CPU_bound])
+            sum_io_bound_cpu_burst_time = sum([sum(process.CPU_burst_times) for process in self.processes if process.is_IO_bound])
+            sum_overall_cpu_burst_time = sum([sum(process.CPU_burst_times) for process in self.processes])
+            sum_cpu_bound_io_burst_time = sum([sum(process.IO_burst_times) for process in self.processes if process.is_CPU_bound])
+            sum_io_bound_io_burst_time = sum([sum(process.IO_burst_times) for process in self.processes if process.is_IO_bound])
+            sum_overall_io_burst_time = sum([sum(process.IO_burst_times) for process in self.processes])
 
-            file.write(f"CPU-bound average CPU burst time: {0}ms\n")
-            file.write(f"I/O-bound average CPU burst time: {0}ms\n")
-            file.write(f"overall average CPU burst time: {0}ms\n")
-            file.write(f"CPU-bound average I/O burst time: {0}ms\n")
-            file.write(f"I/O-bound average I/O burst time: {0}ms\n")
-            file.write(f"overall average I/O burst time: {0}ms\n")
+            if(self.num_cpu_bound == 0):
+                cpu_bound_avg_cpu_burst_time = 0
+                io_bound_avg_cpu_burst_time = sum_io_bound_cpu_burst_time / sum([len(process.CPU_burst_times) for process in self.processes if process.is_IO_bound])
+                overall_avg_cpu_burst_time = io_bound_avg_cpu_burst_time
+                cpu_bound_avg_io_burst_time = 0
+                io_bound_avg_io_burst_time = sum_io_bound_io_burst_time / sum([len(process.IO_burst_times) for process in self.processes if process.is_IO_bound])
+                overall_avg_io_burst_time = io_bound_avg_cpu_burst_time
+            else:
+                cpu_bound_avg_cpu_burst_time = sum_cpu_bound_cpu_burst_time / sum([len(process.CPU_burst_times) for process in self.processes if process.is_CPU_bound])
+                io_bound_avg_cpu_burst_time = sum_io_bound_cpu_burst_time / sum([len(process.CPU_burst_times) for process in self.processes if process.is_IO_bound])
+                overall_avg_cpu_burst_time = sum_overall_cpu_burst_time / sum([len(process.CPU_burst_times) for process in self.processes])
+                cpu_bound_avg_io_burst_time = sum_cpu_bound_io_burst_time / sum([len(process.IO_burst_times) for process in self.processes if process.is_CPU_bound])
+                io_bound_avg_io_burst_time = sum_io_bound_io_burst_time / sum([len(process.IO_burst_times) for process in self.processes if process.is_IO_bound])
+                overall_avg_io_burst_time = sum_overall_io_burst_time / sum([len(process.IO_burst_times) for process in self.processes])
+
+            # Take the ceiling of the average burst times to 3 decimal places
+            cpu_bound_avg_cpu_burst_time = math.ceil((cpu_bound_avg_cpu_burst_time) * 1000) / 1000
+            io_bound_avg_cpu_burst_time = math.ceil((io_bound_avg_cpu_burst_time) * 1000) / 1000
+            overall_avg_cpu_burst_time = math.ceil((overall_avg_cpu_burst_time) * 1000) / 1000
+            cpu_bound_avg_io_burst_time = math.ceil((cpu_bound_avg_io_burst_time) * 1000) / 1000
+            io_bound_avg_io_burst_time = math.ceil((io_bound_avg_io_burst_time) * 1000) / 1000
+            overall_avg_io_burst_time = math.ceil((overall_avg_io_burst_time) * 1000) / 1000
+
+
+            file.write(f"-- CPU-bound average CPU burst time: {cpu_bound_avg_cpu_burst_time:.3f}ms\n")
+            file.write(f"-- I/O-bound average CPU burst time: {io_bound_avg_cpu_burst_time:.3f}ms\n")
+            file.write(f"-- overall average CPU burst time: {overall_avg_cpu_burst_time:.3f}ms\n")
+            file.write(f"-- CPU-bound average I/O burst time: {cpu_bound_avg_io_burst_time:.3f}ms\n")
+            file.write(f"-- I/O-bound average I/O burst time: {io_bound_avg_io_burst_time:.3f}ms\n")
+            file.write(f"-- overall average I/O burst time: {overall_avg_io_burst_time:.3f}ms\n")
 
     # Print the processes in the required format to the terminal
     def print_processes(self):
@@ -224,3 +243,4 @@ cpu = CPU(num_processes, num_cpu_bound, seed, lambda_val, upper_bound)
 cpu.print_input()
 cpu.generate_processes()
 cpu.print_processes()
+cpu.write_output()
