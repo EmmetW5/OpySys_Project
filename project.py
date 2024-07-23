@@ -164,11 +164,16 @@ class CPU:
         for process in self.processes:
             # Print the process information
             if(process.is_CPU_bound):
-                print(f"CPU-bound process {process.process_id}: arrival time {process.arrival_time}ms; {process.num_CPU_bursts} CPU bursts:")
+                if (process.num_CPU_bursts == 1):
+                    print(f"CPU-bound process {process.process_id}: arrival time {process.arrival_time}ms; {process.num_CPU_bursts} CPU burst:")
+                else:
+                    print(f"CPU-bound process {process.process_id}: arrival time {process.arrival_time}ms; {process.num_CPU_bursts} CPU bursts:")
             else:
-                print(f"I/O-bound process {process.process_id}: arrival time {process.arrival_time}ms; {process.num_CPU_bursts} CPU bursts:")
+                if (process.num_CPU_bursts == 1):
+                    print(f"I/O-bound process {process.process_id}: arrival time {process.arrival_time}ms; {process.num_CPU_bursts} CPU burst:")
+                else:
+                    print(f"I/O-bound process {process.process_id}: arrival time {process.arrival_time}ms; {process.num_CPU_bursts} CPU bursts:")
 
-            
             # Print the CPU and IO burst times
             for i in range(len(process.CPU_burst_times)):
                 if(i == len(process.CPU_burst_times) - 1):
