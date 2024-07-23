@@ -145,28 +145,36 @@ class CPU:
             sum_io_bound_io_burst_time = sum([sum(process.IO_burst_times) for process in self.processes if process.is_IO_bound])
             sum_overall_io_burst_time = sum([sum(process.IO_burst_times) for process in self.processes])
 
-            if(self.num_cpu_bound == 0):
+            if(self.num_processes == 0):
                 cpu_bound_avg_cpu_burst_time = 0
-                io_bound_avg_cpu_burst_time = sum_io_bound_cpu_burst_time / sum([len(process.CPU_burst_times) for process in self.processes if process.is_IO_bound])
-                overall_avg_cpu_burst_time = io_bound_avg_cpu_burst_time
+                io_bound_avg_cpu_burst_time = 0
+                overall_avg_cpu_burst_time = 0
                 cpu_bound_avg_io_burst_time = 0
-                io_bound_avg_io_burst_time = sum_io_bound_io_burst_time / sum([len(process.IO_burst_times) for process in self.processes if process.is_IO_bound])
-                overall_avg_io_burst_time = io_bound_avg_io_burst_time
+                io_bound_avg_io_burst_time = 0
+                overall_avg_io_burst_time = 0
             else:
-                cpu_bound_avg_cpu_burst_time = sum_cpu_bound_cpu_burst_time / sum([len(process.CPU_burst_times) for process in self.processes if process.is_CPU_bound])
-                io_bound_avg_cpu_burst_time = sum_io_bound_cpu_burst_time / sum([len(process.CPU_burst_times) for process in self.processes if process.is_IO_bound])
-                overall_avg_cpu_burst_time = sum_overall_cpu_burst_time / sum([len(process.CPU_burst_times) for process in self.processes])
-                cpu_bound_avg_io_burst_time = sum_cpu_bound_io_burst_time / sum([len(process.IO_burst_times) for process in self.processes if process.is_CPU_bound])
-                io_bound_avg_io_burst_time = sum_io_bound_io_burst_time / sum([len(process.IO_burst_times) for process in self.processes if process.is_IO_bound])
-                overall_avg_io_burst_time = sum_overall_io_burst_time / sum([len(process.IO_burst_times) for process in self.processes])
+                if(self.num_cpu_bound == 0):
+                    cpu_bound_avg_cpu_burst_time = 0
+                    io_bound_avg_cpu_burst_time = sum_io_bound_cpu_burst_time / sum([len(process.CPU_burst_times) for process in self.processes if process.is_IO_bound])
+                    overall_avg_cpu_burst_time = io_bound_avg_cpu_burst_time
+                    cpu_bound_avg_io_burst_time = 0
+                    io_bound_avg_io_burst_time = sum_io_bound_io_burst_time / sum([len(process.IO_burst_times) for process in self.processes if process.is_IO_bound])
+                    overall_avg_io_burst_time = io_bound_avg_io_burst_time
+                else:
+                    cpu_bound_avg_cpu_burst_time = sum_cpu_bound_cpu_burst_time / sum([len(process.CPU_burst_times) for process in self.processes if process.is_CPU_bound])
+                    io_bound_avg_cpu_burst_time = sum_io_bound_cpu_burst_time / sum([len(process.CPU_burst_times) for process in self.processes if process.is_IO_bound])
+                    overall_avg_cpu_burst_time = sum_overall_cpu_burst_time / sum([len(process.CPU_burst_times) for process in self.processes])
+                    cpu_bound_avg_io_burst_time = sum_cpu_bound_io_burst_time / sum([len(process.IO_burst_times) for process in self.processes if process.is_CPU_bound])
+                    io_bound_avg_io_burst_time = sum_io_bound_io_burst_time / sum([len(process.IO_burst_times) for process in self.processes if process.is_IO_bound])
+                    overall_avg_io_burst_time = sum_overall_io_burst_time / sum([len(process.IO_burst_times) for process in self.processes])
 
-            # Take the ceiling of the average burst times to 3 decimal places
-            cpu_bound_avg_cpu_burst_time = math.ceil((cpu_bound_avg_cpu_burst_time) * 1000) / 1000
-            io_bound_avg_cpu_burst_time = math.ceil((io_bound_avg_cpu_burst_time) * 1000) / 1000
-            overall_avg_cpu_burst_time = math.ceil((overall_avg_cpu_burst_time) * 1000) / 1000
-            cpu_bound_avg_io_burst_time = math.ceil((cpu_bound_avg_io_burst_time) * 1000) / 1000
-            io_bound_avg_io_burst_time = math.ceil((io_bound_avg_io_burst_time) * 1000) / 1000
-            overall_avg_io_burst_time = math.ceil((overall_avg_io_burst_time) * 1000) / 1000
+                # Take the ceiling of the average burst times to 3 decimal places
+                cpu_bound_avg_cpu_burst_time = math.ceil((cpu_bound_avg_cpu_burst_time) * 1000) / 1000
+                io_bound_avg_cpu_burst_time = math.ceil((io_bound_avg_cpu_burst_time) * 1000) / 1000
+                overall_avg_cpu_burst_time = math.ceil((overall_avg_cpu_burst_time) * 1000) / 1000
+                cpu_bound_avg_io_burst_time = math.ceil((cpu_bound_avg_io_burst_time) * 1000) / 1000
+                io_bound_avg_io_burst_time = math.ceil((io_bound_avg_io_burst_time) * 1000) / 1000
+                overall_avg_io_burst_time = math.ceil((overall_avg_io_burst_time) * 1000) / 1000
 
 
             file.write(f"-- CPU-bound average CPU burst time: {cpu_bound_avg_cpu_burst_time:.3f} ms\n")
@@ -227,6 +235,9 @@ def check_input(num_processes, num_cpu_bound, seed, lambda_val, upper_bound):
         sys.exit(1)
     if(not isinstance(num_cpu_bound, int) or not isinstance(num_processes, int) or not isinstance(seed, int) or not isinstance(lambda_val, float) or not isinstance(upper_bound, int)):
         sys.stderr.write("ERROR: <Number of operations, cpu bound operations and the seed must be integers>")
+        sys.exit(1)
+    if(lambda_val <= 0):
+        sys.stderr.write("ERROR: <Invalid lambda value>")
         sys.exit(1)
     if(num_cpu_bound < 0 or num_cpu_bound > num_processes):
         sys.stderr.write("ERROR: <Invalid number of CPU-bound processes>")
