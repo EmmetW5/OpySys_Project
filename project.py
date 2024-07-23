@@ -194,8 +194,8 @@ lambda_val = float(sys.argv[4])
 upper_bound = int(sys.argv[5])
 
 if(num_processes <= 0 or num_cpu_bound < 0 or lambda_val <= 0 or upper_bound < 0):
-    print("ERROR: <Incorrect inputs>")
-    sys.exit()
+    sys.stderr.write("ERROR: <Invalid input values>")
+    sys.exit(1)
 
 
 cpu = CPU(num_processes, num_cpu_bound, seed, lambda_val, upper_bound)
