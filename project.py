@@ -56,7 +56,10 @@ class CPU:
 
     # Not sure if this is the correct way to generate the next exponential value
     def next_exp(self):
-        return -math.log(self.rng.drand48()) / self.lambda_val
+        x = -math.log(self.rng.drand48()) / self.lambda_val
+        while(x > self.upper_bound):
+            x = -math.log(self.rng.drand48()) / self.lambda_val
+        return x
 
     # Generate the CPU bound and IO bound processes following the instructions in the project description
     def generate_processes(self):
