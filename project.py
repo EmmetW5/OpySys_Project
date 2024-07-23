@@ -55,7 +55,7 @@ class CPU:
         self.processes = []
 
 
-    # Not sure if this is the correct way to generate the next exponential value
+    # Generate the next exponential random number
     def next_exp(self):
         x = -math.log(self.rng.drand48()) / self.lambda_val
         while(x > self.upper_bound):
@@ -65,11 +65,6 @@ class CPU:
     # Generate the CPU bound and IO bound processes following the instructions in the project description
     def generate_processes(self):
         # Generate CPU bound processes
-        
-        # POSSIBLE BUG: the order in which we generate the CPU bound and IO bound processes could be wrong
-        # since we are supposed to get certain random numbers for each, thus we may need to follow a certain order
-        # I'm not sure what that would be though...
-        
         name_counter = 0
         for i in range(self.num_cpu_bound):
             # Set the process ID, arrival time, and number of CPU bursts
@@ -128,7 +123,7 @@ class CPU:
         pass
 
     # Writes the summary statistics to the output file in the required format
-    # This thing is a bear fr fr fr
+    # This thing is a bear fr fr
     def write_output(self):
         filepath = "simout.txt"
         with open(filepath, 'w') as file:
@@ -251,8 +246,6 @@ def check_input(num_processes, num_cpu_bound, seed, lambda_val, upper_bound):
 # -----------------------------------------------------------------
 #           MAIN 
 # -----------------------------------------------------------------
-
-# IMPLEMENT ERROR CHECKING ON INPUTS
 
 if(len(sys.argv) != 6):
     sys.stderr.write("ERROR: <Incorrect number of arguments>")
