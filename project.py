@@ -128,6 +128,7 @@ class CPU:
         pass
 
     # Writes the summary statistics to the output file in the required format
+    # This thing is a bear fr fr fr
     def write_output(self):
         filepath = "simout.txt"
         with open(filepath, 'w') as file:
@@ -217,6 +218,24 @@ class CPU:
         print(f"<<< -- seed={self.seed}; lambda={self.lambda_val:.6f}; bound={self.upper_bound}")
 
 
+def check_input(num_processes, num_cpu_bound, seed, lambda_val, upper_bound):
+    if(len(sys.argv) != 6):
+        sys.stderr.write("ERROR: <Incorrect number of arguments>")
+        sys.exit(1)
+    if(num_processes < 0 or num_processes > 260):
+        sys.stderr.write("ERROR: <Invalid number of processes>")
+        sys.exit(1)
+    if(not isinstance(num_cpu_bound, int) or not isinstance(num_processes, int) or not isinstance(seed, int) or not isinstance(lambda_val, float) or not isinstance(upper_bound, int)):
+        sys.stderr.write("ERROR: <Number of operations, cpu bound operations and the seed must be integers>")
+        sys.exit(1)
+    if(num_cpu_bound < 0 or num_cpu_bound > num_processes):
+        sys.stderr.write("ERROR: <Invalid number of CPU-bound processes>")
+        sys.exit(1)
+    if(upper_bound < 0):
+        sys.stderr.write("ERROR: <Invalid upper bound>")
+        sys.exit(1)
+
+    
 
 # -----------------------------------------------------------------
 #           MAIN 
@@ -228,17 +247,17 @@ if(len(sys.argv) != 6):
     sys.stderr.write("ERROR: <Incorrect number of arguments>")
     sys.exit(1)
 
+# Get the input parameters
 num_processes = int(sys.argv[1])
 num_cpu_bound = int(sys.argv[2])
 seed = int(sys.argv[3])
 lambda_val = float(sys.argv[4])
 upper_bound = int(sys.argv[5])
 
-if(num_processes <= 0 or num_cpu_bound < 0 or lambda_val <= 0 or upper_bound < 0):
-    sys.stderr.write("ERROR: <Invalid input values>")
-    sys.exit(1)
+# Check the input parameters
+check_input(num_processes, num_cpu_bound, seed, lambda_val, upper_bound)
 
-
+# Create the CPU object and generate the output
 cpu = CPU(num_processes, num_cpu_bound, seed, lambda_val, upper_bound)
 cpu.print_input()
 cpu.generate_processes()
