@@ -168,12 +168,12 @@ class CPU:
             overall_avg_io_burst_time = math.ceil((overall_avg_io_burst_time) * 1000) / 1000
 
 
-            file.write(f"-- CPU-bound average CPU burst time: {cpu_bound_avg_cpu_burst_time:.3f}ms\n")
-            file.write(f"-- I/O-bound average CPU burst time: {io_bound_avg_cpu_burst_time:.3f}ms\n")
-            file.write(f"-- overall average CPU burst time: {overall_avg_cpu_burst_time:.3f}ms\n")
-            file.write(f"-- CPU-bound average I/O burst time: {cpu_bound_avg_io_burst_time:.3f}ms\n")
-            file.write(f"-- I/O-bound average I/O burst time: {io_bound_avg_io_burst_time:.3f}ms\n")
-            file.write(f"-- overall average I/O burst time: {overall_avg_io_burst_time:.3f}ms\n")
+            file.write(f"-- CPU-bound average CPU burst time: {cpu_bound_avg_cpu_burst_time:.3f} ms\n")
+            file.write(f"-- I/O-bound average CPU burst time: {io_bound_avg_cpu_burst_time:.3f} ms\n")
+            file.write(f"-- overall average CPU burst time: {overall_avg_cpu_burst_time:.3f} ms\n")
+            file.write(f"-- CPU-bound average I/O burst time: {cpu_bound_avg_io_burst_time:.3f} ms\n")
+            file.write(f"-- I/O-bound average I/O burst time: {io_bound_avg_io_burst_time:.3f} ms\n")
+            file.write(f"-- overall average I/O burst time: {overall_avg_io_burst_time:.3f} ms\n")
 
     # Print the processes in the required format to the terminal
     def print_processes(self):
