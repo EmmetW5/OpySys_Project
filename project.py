@@ -61,6 +61,11 @@ class CPU:
     # Generate the CPU bound and IO bound processes following the instructions in the project description
     def generate_processes(self):
         # Generate CPU bound processes
+        
+        # POSSIBLE BUG: the order in which we generate the CPU bound and IO bound processes could be wrong
+        # since we are supposed to get certain random numbers for each, thus we may need to follow a certain order
+        # I'm not sure what that would be though...
+        
         name_counter = 0
         for i in range(self.num_cpu_bound):
             # Set the process ID, arrival time, and number of CPU bursts
@@ -71,6 +76,10 @@ class CPU:
             process.is_CPU_bound = True
 
             # Generate the CPU burst times and IO burst times for the process
+
+            # POSSIBLE BUG: since we are not acutally supposed to generate an IO burst time for the last CPU burst,
+            #  its possible that the final call to next_exp() will throw off all other values by 1. If so add if statement
+
             for j in range(process.num_CPU_bursts):
                 process.CPU_burst_times.append(math.ceil(self.next_exp()) * 4) # CPU bound
                 process.IO_burst_times.append(math.ceil(self.next_exp()))
