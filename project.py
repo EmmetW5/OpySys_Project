@@ -225,7 +225,7 @@ def check_input(num_processes, num_cpu_bound, seed, lambda_val, upper_bound):
     if(len(sys.argv) != 6):
         sys.stderr.write("ERROR: <Incorrect number of arguments>")
         sys.exit(1)
-    if(num_processes < 0 or num_processes > 260):
+    if(num_processes <= 0 or num_processes > 260):
         sys.stderr.write("ERROR: <Invalid number of processes>")
         sys.exit(1)
     if(not isinstance(num_cpu_bound, int) or not isinstance(num_processes, int) or not isinstance(seed, int) or not isinstance(lambda_val, float) or not isinstance(upper_bound, int)):
