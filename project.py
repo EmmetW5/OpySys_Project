@@ -216,9 +216,6 @@ class CPU:
 
 
 def check_input(num_processes, num_cpu_bound, seed, lambda_val, upper_bound):
-    if(len(sys.argv) != 6):
-        sys.stderr.write("ERROR: <Incorrect number of arguments>")
-        sys.exit(1)
     if(num_processes <= 0 or num_processes > 260):
         sys.stderr.write("ERROR: <Invalid number of processes>")
         sys.exit(1)
