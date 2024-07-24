@@ -140,30 +140,65 @@ class CPU:
             sum_io_bound_io_burst_time = sum([sum(process.IO_burst_times) for process in self.processes if process.is_IO_bound])
             sum_overall_io_burst_time = sum([sum(process.IO_burst_times) for process in self.processes])
 
+            temp_denom = 1
+
             # Calculate the average burst times for CPU-bound and IO-bound processes
-            # If the number of CPU bound processes is 0, then we know that IO processes are non-zero
             if(self.num_cpu_bound == 0):
                 # If there are no CPU-bound processes, set the CPU-bound average burst times to 0
                 cpu_bound_avg_cpu_burst_time = 0
-                io_bound_avg_cpu_burst_time = sum_io_bound_cpu_burst_time / sum([len(process.CPU_burst_times) for process in self.processes if process.is_IO_bound])
+
+                temp_denom = sum([len(process.CPU_burst_times) for process in self.processes if process.is_IO_bound])
+                if (temp_denom != 0):
+                    io_bound_avg_cpu_burst_time = sum_io_bound_cpu_burst_time / temp_denom
+                else:
+                    io_bound_avg_cpu_burst_time = 0
+
                 overall_avg_cpu_burst_time = io_bound_avg_cpu_burst_time
                 cpu_bound_avg_io_burst_time = 0
-                io_bound_avg_io_burst_time = sum_io_bound_io_burst_time / sum([len(process.IO_burst_times) for process in self.processes if process.is_IO_bound])
+
+                temp_denom = sum([len(process.IO_burst_times) for process in self.processes if process.is_IO_bound])
+                if (temp_denom != 0):
+                    io_bound_avg_io_burst_time = sum_io_bound_io_burst_time / temp_denom
+                else:
+                    io_bound_avg_io_burst_time = 0
+
                 overall_avg_io_burst_time = io_bound_avg_io_burst_time
             else:
-                # Account for zero io bound processes
-                cpu_bound_avg_cpu_burst_time = sum_cpu_bound_cpu_burst_time / sum([len(process.CPU_burst_times) for process in self.processes if process.is_CPU_bound])
-                if(sum([len(process.CPU_burst_times) for process in self.processes if process.is_IO_bound]) == 0):
+                temp_denom = sum([len(process.CPU_burst_times) for process in self.processes if process.is_CPU_bound])
+                if (temp_denom != 0):
+                    cpu_bound_avg_cpu_burst_time = sum_cpu_bound_cpu_burst_time / temp_denom
+                else:
+                    cpu_bound_avg_cpu_burst_time = 0
+
+                temp_denom = sum([len(process.CPU_burst_times) for process in self.processes if process.is_IO_bound])
+                if (temp_denom != 0):
+                    io_bound_avg_cpu_burst_time = sum_io_bound_cpu_burst_time / temp_denom
+                else:
                     io_bound_avg_cpu_burst_time = 0
+
+                temp_denom = sum([len(process.CPU_burst_times) for process in self.processes])
+                if (temp_denom != 0):
+                    overall_avg_cpu_burst_time = sum_overall_cpu_burst_time / temp_denom
                 else:
-                    io_bound_avg_cpu_burst_time = sum_io_bound_cpu_burst_time / sum([len(process.CPU_burst_times) for process in self.processes if process.is_IO_bound])
-                overall_avg_cpu_burst_time = sum_overall_cpu_burst_time / sum([len(process.CPU_burst_times) for process in self.processes])
-                cpu_bound_avg_io_burst_time = sum_cpu_bound_io_burst_time / sum([len(process.IO_burst_times) for process in self.processes if process.is_CPU_bound])
-                if(sum([len(process.IO_burst_times) for process in self.processes if process.is_IO_bound]) == 0):
+                    overall_avg_cpu_burst_time = 0
+
+                temp_denom = sum([len(process.IO_burst_times) for process in self.processes if process.is_CPU_bound])
+                if(temp_denom != 0):
+                    cpu_bound_avg_io_burst_time = sum_cpu_bound_io_burst_time / temp_denom
+                else:
+                    cpu_bound_avg_io_burst_time = 0
+
+                temp_denom = sum([len(process.IO_burst_times) for process in self.processes if process.is_IO_bound])
+                if (temp_denom != 0):
+                    io_bound_avg_io_burst_time = sum_io_bound_io_burst_time / temp_denom
+                else:
                     io_bound_avg_io_burst_time = 0
+
+                temp_denom = sum([len(process.IO_burst_times) for process in self.processes])
+                if (temp_denom != 0):
+                    overall_avg_io_burst_time = sum_overall_io_burst_time / temp_denom
                 else:
-                    io_bound_avg_io_burst_time = sum_io_bound_io_burst_time / sum([len(process.IO_burst_times) for process in self.processes if process.is_IO_bound])
-                overall_avg_io_burst_time = sum_overall_io_burst_time / sum([len(process.IO_burst_times) for process in self.processes])
+                    overall_avg_io_burst_time = 0
 
                 # Take the ceiling of the average burst times to 3 decimal places
                 cpu_bound_avg_cpu_burst_time = math.ceil((cpu_bound_avg_cpu_burst_time) * 1000) / 1000
@@ -225,16 +260,16 @@ class CPU:
 
 def check_input(num_processes, num_cpu_bound, seed, lambda_val, upper_bound):
     if(num_processes <= 0 or num_processes > 260):
-        sys.stderr.write("ERROR: <Invalid number of processes>")
+        sys.stderr.write("ERROR: <Invalid number of processes>\n")
         sys.exit(1)
     if(lambda_val <= 0):
-        sys.stderr.write("ERROR: <Invalid lambda value>")
+        sys.stderr.write("ERROR: <Invalid lambda value>\n")
         sys.exit(1)
     if(num_cpu_bound < 0 or num_cpu_bound > num_processes):
-        sys.stderr.write("ERROR: <Invalid number of CPU-bound processes>")
+        sys.stderr.write("ERROR: <Invalid number of CPU-bound processes>\n")
         sys.exit(1)
     if(upper_bound <= 0):
-        sys.stderr.write("ERROR: <Invalid upper bound>")
+        sys.stderr.write("ERROR: <Invalid upper bound>\n")
         sys.exit(1)
 
     
@@ -244,7 +279,7 @@ def check_input(num_processes, num_cpu_bound, seed, lambda_val, upper_bound):
 # -----------------------------------------------------------------
 
 if(len(sys.argv) != 6):
-    sys.stderr.write("ERROR: <Incorrect number of arguments>")
+    sys.stderr.write("ERROR: <Incorrect number of arguments>\n")
     sys.exit(1)
 
 # Get the input parameters
