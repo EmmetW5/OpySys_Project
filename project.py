@@ -141,6 +141,7 @@ class CPU:
             sum_overall_io_burst_time = sum([sum(process.IO_burst_times) for process in self.processes])
 
             # Calculate the average burst times for CPU-bound and IO-bound processes
+            # If the number of CPU bound processes is 0, then we know that IO processes are non-zero
             if(self.num_cpu_bound == 0):
                 # If there are no CPU-bound processes, set the CPU-bound average burst times to 0
                 cpu_bound_avg_cpu_burst_time = 0
@@ -150,11 +151,18 @@ class CPU:
                 io_bound_avg_io_burst_time = sum_io_bound_io_burst_time / sum([len(process.IO_burst_times) for process in self.processes if process.is_IO_bound])
                 overall_avg_io_burst_time = io_bound_avg_io_burst_time
             else:
+                # Account for zero io bound processes
                 cpu_bound_avg_cpu_burst_time = sum_cpu_bound_cpu_burst_time / sum([len(process.CPU_burst_times) for process in self.processes if process.is_CPU_bound])
-                io_bound_avg_cpu_burst_time = sum_io_bound_cpu_burst_time / sum([len(process.CPU_burst_times) for process in self.processes if process.is_IO_bound])
+                if(sum([len(process.CPU_burst_times) for process in self.processes if process.is_IO_bound]) == 0):
+                    io_bound_avg_cpu_burst_time = 0
+                else:
+                    io_bound_avg_cpu_burst_time = sum_io_bound_cpu_burst_time / sum([len(process.CPU_burst_times) for process in self.processes if process.is_IO_bound])
                 overall_avg_cpu_burst_time = sum_overall_cpu_burst_time / sum([len(process.CPU_burst_times) for process in self.processes])
                 cpu_bound_avg_io_burst_time = sum_cpu_bound_io_burst_time / sum([len(process.IO_burst_times) for process in self.processes if process.is_CPU_bound])
-                io_bound_avg_io_burst_time = sum_io_bound_io_burst_time / sum([len(process.IO_burst_times) for process in self.processes if process.is_IO_bound])
+                if(sum([len(process.IO_burst_times) for process in self.processes if process.is_IO_bound]) == 0):
+                    io_bound_avg_io_burst_time = 0
+                else:
+                    io_bound_avg_io_burst_time = sum_io_bound_io_burst_time / sum([len(process.IO_burst_times) for process in self.processes if process.is_IO_bound])
                 overall_avg_io_burst_time = sum_overall_io_burst_time / sum([len(process.IO_burst_times) for process in self.processes])
 
                 # Take the ceiling of the average burst times to 3 decimal places
