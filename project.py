@@ -99,7 +99,7 @@ class CPU:
         
         # Generate IO bound processes
         for i in range(self.num_processes - self.num_cpu_bound):
-            # Set the process ID, arrival time, and number of CPU bursts
+            # PROCESS -------- label -------------------------------- arrival time ------------- number of CPU bursts ---------------------------- CPU bound
             process = Process(self.process_id_string(name_counter), math.floor(self.next_exp()), math.ceil(self.rng.drand48() * 32), [], [], False, True)
 
             # Generate the CPU burst times and IO burst times for the process
