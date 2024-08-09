@@ -1,6 +1,7 @@
 import sys
 import math
 
+
 # Via Discussion Forum, credit goes to Caleb C. for the following class.
 # This class is used to generate random numbers for the CPU bound and IO bound processes.
 # The random number generator is seeded with a given seed value.
@@ -39,13 +40,17 @@ class Process:
 # The CPU class generates the processes and stores them in a list.
 # The CPU class also has a method to print the processes in the required format.
 class CPU:
-    def __init__(self, num_processes, num_cpu_bound, seed, lambda_val, upper_bound):
+    def __init__(self, num_processes, num_cpu_bound, seed, lambda_val, upper_bound, context_switch, alpha, time_slice):
         # Input parameters
         self.num_processes = num_processes
         self.num_cpu_bound = num_cpu_bound
         self.seed = seed
         self.lambda_val = lambda_val
         self.upper_bound = upper_bound
+        self.context_switch = context_switch
+        self.alpha = alpha
+        self.time_slice = time_slice
+        
 
         # Create and seed the random number generator
         self.rng = RandomNumberGenerator()
@@ -100,27 +105,54 @@ class CPU:
             self.processes.append(process)
             name_counter += 1
 
-    # IMPLEMENT ME
+    # Calls all the simulation methods, and keeps track of required statistics
     def run_simulation(self):
-        # this method is inteded to "run" the simulation, but in reality it will calculate certain statistics
-        # From the project description:
-        # - Turnaround Time:
-        #       Turnaround times are to be measured for each process that you simulate. Turnaround time is
-        #       defined as the end-to-end time a process spends in executing a single CPU burst.
-        #       More specifically, this is measured from process arrival time through to when the CPU burst is
-        #       completed and the process is switched out of the CPU. Therefore, this measure includes the second
-        #       half of the initial context switch in and the first half of the final context switch out, as well as any
-        #       other context switches that occur while the CPU burst is being completed (i.e., due to preemptions).
-        # - Waiting Time:
-        #       Wait times are to be measured for each CPU burst. Wait time is defined as the amount of time
-        #       a process spends waiting to use the CPU, which equates to the amount of time the given process
-        #       is actually in the ready queue. Therefore, this measure does not include context switch times that
-        #       the given process experiences, i.e., only measure the time the given process is actually in the ready
-        #       queue.
-        # - CPU utilization:
-        #       Calculate CPU utilization by tracking how much time the CPU is actively running CPU bursts
-        #       versus total elapsed simulation time.
         pass
+    
+
+    
+    # The FCFS algorithm is a non-preemptive algorithm in which processes simply line up in the ready
+    # queue, waiting to use the CPU. This is your baseline algorithm.
+    def FCFS(self):
+        time = 0
+        queue = []
+        self.print_event(time, "Simulator started for FCFS", queue)
+        
+        
+        
+        
+        
+    
+    # In SJF, processes are stored in the ready queue in order of priority based on their anticipated CPU
+    # burst times. More specifically, the process with the shortest predicted CPU burst time will be
+    # selected as the next process executed by the CPU. SJF is non-preemptive.\
+    def SJF(self):
+        pass
+    
+    # The SRT algorithm is a preemptive version of the SJF algorithm. In SRT, when a process arrives,
+    # if it has a predicted CPU burst time that is less than the remaining predicted time of the currently
+    # running process, a preemption occurs. When such a preemption occurs, the currently running
+    # process is added to the ready queue based on priority, i.e., based on its remaining predicted CPU
+    # burst time.
+    def SRT(self):
+        pass
+    
+    # The RR algorithm is essentially the FCFS algorithm with time slice tslice. Each process is given
+    # tslice amount of time to complete its CPU burst. If the time slice expires, the process is preempted
+    # and added to the end of the ready queue.
+    # If a process completes its CPU burst before a time slice expiration, the next process on the ready
+    # queue is context-switched in to use the CPU.
+    def RR(self):
+        pass
+    
+    def print_event(self, time, event_details, queue):
+        # convert the current contents of the queue to a string
+        queue_string = ""
+        for process in queue:
+            queue_string += process.process_id + " "
+        if (len(queue) == 0):
+            queue_string = "empty"
+        print(f"time {time}ms: {event_details} [Q {queue_string}]")
 
     # Writes the summary statistics to the output file in the required format
     # This thing is a bear fr fr
@@ -140,31 +172,7 @@ class CPU:
             sum_io_bound_io_burst_time = sum([sum(process.IO_burst_times) for process in self.processes if process.is_IO_bound])
             sum_overall_io_burst_time = sum([sum(process.IO_burst_times) for process in self.processes])
 
-            # Calculate the average burst times for CPU-bound and IO-bound processes
-            # If the number of CPU bound processes is 0, then we know that IO processes are non-zero
-            # if(self.num_cpu_bound == 0):
-            #     # If there are no CPU-bound processes, set the CPU-bound average burst times to 0
-            #     cpu_bound_avg_cpu_burst_time = 0
-            #     io_bound_avg_cpu_burst_time = sum_io_bound_cpu_burst_time / sum([len(process.CPU_burst_times) for process in self.processes if process.is_IO_bound])
-            #     overall_avg_cpu_burst_time = io_bound_avg_cpu_burst_time
-            #     cpu_bound_avg_io_burst_time = 0
-            #     io_bound_avg_io_burst_time = sum_io_bound_io_burst_time / sum([len(process.IO_burst_times) for process in self.processes if process.is_IO_bound])
-            #     overall_avg_io_burst_time = io_bound_avg_io_burst_time
-            # else:
-            #     # Account for zero io bound processes
-            #     cpu_bound_avg_cpu_burst_time = sum_cpu_bound_cpu_burst_time / sum([len(process.CPU_burst_times) for process in self.processes if process.is_CPU_bound])
-            #     if(sum([len(process.CPU_burst_times) for process in self.processes if process.is_IO_bound]) == 0):
-            #         io_bound_avg_cpu_burst_time = 0
-            #     else:
-            #         io_bound_avg_cpu_burst_time = sum_io_bound_cpu_burst_time / sum([len(process.CPU_burst_times) for process in self.processes if process.is_IO_bound])
-            #     overall_avg_cpu_burst_time = sum_overall_cpu_burst_time / sum([len(process.CPU_burst_times) for process in self.processes])
-            #     cpu_bound_avg_io_burst_time = sum_cpu_bound_io_burst_time / sum([len(process.IO_burst_times) for process in self.processes if process.is_CPU_bound])
-            #     if(sum([len(process.IO_burst_times) for process in self.processes if process.is_IO_bound]) == 0):
-            #         io_bound_avg_io_burst_time = 0
-            #     else:
-            #         io_bound_avg_io_burst_time = sum_io_bound_io_burst_time / sum([len(process.IO_burst_times) for process in self.processes if process.is_IO_bound])
-            #     overall_avg_io_burst_time = sum_overall_io_burst_time / sum([len(process.IO_burst_times) for process in self.processes])
-
+            
             
             if(self.num_cpu_bound == 0):
                 # If there are no CPU-bound processes, set the CPU-bound average burst times to 0
@@ -250,13 +258,17 @@ class CPU:
                 else:
                     print(f"I/O-bound process {process.process_id}: arrival time {process.arrival_time}ms; {process.num_CPU_bursts} CPU bursts:")
 
-            # Print the CPU and IO burst times
-            for i in range(len(process.CPU_burst_times)):
-                if(i == len(process.CPU_burst_times) - 1):
-                    print(f"==> CPU burst {process.CPU_burst_times[i]}ms")
-                else:
-                    print(f"==> CPU burst {process.CPU_burst_times[i]}ms ==> I/O burst {process.IO_burst_times[i]}ms")
+
+            # legacy code for part I, no longer needed to output here in this format
+
+            # # Print the CPU and IO burst times
+            # for i in range(len(process.CPU_burst_times)):
+            #     if(i == len(process.CPU_burst_times) - 1):
+            #         print(f"==> CPU burst {process.CPU_burst_times[i]}ms")
+            #     else:
+            #         print(f"==> CPU burst {process.CPU_burst_times[i]}ms ==> I/O burst {process.IO_burst_times[i]}ms")
             
+            # end legacy
 
     # returns the A0 - Z9 string representation of the process
     def process_id_string(self, process_number):
@@ -266,15 +278,22 @@ class CPU:
 
     # Prints the input parameters in the required format for the start of the terminal output
     def print_input(self):
+        # part I stuff
         print("<<< PROJECT PART I")
         if(self.num_cpu_bound == 1):
             print(f"<<< -- process set (n={self.num_processes}) with {self.num_cpu_bound} CPU-bound process")
         else:
             print(f"<<< -- process set (n={self.num_processes}) with {self.num_cpu_bound} CPU-bound processes")
         print(f"<<< -- seed={self.seed}; lambda={self.lambda_val:.6f}; bound={self.upper_bound}")
+        print()
+        
+        # part II stuff
+        print("<<< PROJECT PART II")
+        print("<<< -- t_cs={self.context_switch}ms; alpha={self.alpha:.2f}; t_slice={self.time_slice}ms")
+        
 
 
-def check_input(num_processes, num_cpu_bound, seed, lambda_val, upper_bound):
+def check_input(num_processes, num_cpu_bound, seed, lambda_val, upper_bound, context_switch, alpha, time_slice):
     if(num_processes <= 0 or num_processes > 260):
         sys.stderr.write("ERROR: <Invalid number of processes>")
         sys.exit(1)
@@ -286,6 +305,15 @@ def check_input(num_processes, num_cpu_bound, seed, lambda_val, upper_bound):
         sys.exit(1)
     if(upper_bound <= 0):
         sys.stderr.write("ERROR: <Invalid upper bound>")
+        sys.exit(1)
+    if(context_switch <= 0):
+        sys.stderr.write("ERROR: <Invalid context switch>")
+        sys.exit(1)
+    if(alpha < 0 or alpha > 1):
+        sys.stderr.write("ERROR: <Invalid alpha>")
+        sys.exit(1)
+    if(time_slice <= 0):
+        sys.stderr.write("ERROR: <Invalid time slice>")
         sys.exit(1)
 
     
@@ -305,11 +333,17 @@ seed = int(sys.argv[3])
 lambda_val = float(sys.argv[4])
 upper_bound = int(sys.argv[5])
 
+# implement error checking on the new inputs!!
+context_switch = int(sys.argv[6])
+alpha = float(sys.argv[7])
+time_slice = int(sys.argv[8])
+
+
 # Check the input parameters
 check_input(num_processes, num_cpu_bound, seed, lambda_val, upper_bound)
 
 # Create the CPU object and generate the output
-cpu = CPU(num_processes, num_cpu_bound, seed, lambda_val, upper_bound)
+cpu = CPU(num_processes, num_cpu_bound, seed, lambda_val, upper_bound, context_switch, alpha, time_slice)
 cpu.print_input()
 cpu.generate_processes()
 cpu.print_processes()
