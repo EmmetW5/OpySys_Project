@@ -135,7 +135,7 @@ class CPU:
         # if(queue empty & arrival_times empty & I/O block empty then loop ends & CPU_burst empty) we end
         while(len(queue) > 0 or len(sorted_arrival_times) > 0 or len(IO_block) > 0 or len(CPU_burst) > 0):
             # if CPU available then we start running next process in CPU, we want this to happen immediately after arrival
-            if (len(CPU_burst) > 0 and queue[0].burst_index < len(queue[0].CPU_burst_times)):
+            if (len(CPU_burst) == 0 and queue[0].burst_index < len(queue[0].CPU_burst_times)):
                 CPU_burst.append(queue[0])
                 queue.pop(0)
                 event = "Process " + CPU_burst[0].process_id + " started using the CPU for " + str(CPU_burst[0].CPU_burst_times[CPU_burst[0].burst_index]) + "ms burst"
@@ -165,17 +165,22 @@ class CPU:
                 else:
                     break
 
-            break
 
             # now we check if an I/O operation is going to end before the CPU burst
-            # while(len(IO_block) > 0 and IO_block[0].IO_burst_times[IO_block[0].iteration] <= CPU_burst[0].CPU_burst_times[CPU_burst[0].burst_index]):
-            #     queue.append(IO_block[0])
-            #     event = "Process " + IO_block[0].process_id + " completed I/O; added to ready queue"
-            #     self.print_event(time + IO_block[0].IO_burst_times[IO_block[0].iteration], event, queue)
-            #     IO_block.pop(0)
-            #     IO_block[0].IO_index += 1
+            while(len(IO_block) > 0 and IO_block[0].IO_burst_times[IO_block[0].iteration] <= CPU_burst[0].CPU_burst_times[CPU_burst[0].burst_index]):
+                queue.append(IO_block[0])
+                event = "Process " + IO_block[0].process_id + " completed I/O; added to ready queue"
+                self.print_event(time + IO_block[0].IO_burst_times[IO_block[0].iteration], event, queue)
+                IO_block.pop(0)
+                IO_block[0].IO_index += 1
 
             # Handle CPU process finished
+            # if(len(CPU_burst) > 0 and CPU_burst[0].burst_index == len(CPU_burst[0].CPU_burst_times)):
+
+
+
+
+            break
 
 
 
