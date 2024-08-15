@@ -34,6 +34,8 @@ class Process:
         self.IO_burst_times = IO_burst_times
         self.is_CPU_bound = is_CPU_bound
         self.is_IO_bound = is_IO_bound
+        self.burst_index = 0
+        self.IO_index = 0
 
 
 # CPU class to store the inputs and generate the processes with the given seed and lambda values.
@@ -118,15 +120,74 @@ class CPU:
         # print initial state and arrival time
         self.print_event(0, "Simulator started for FCFS", [])
 
-        curr_process = self.processes[0]
-        time = curr_process.arrival_time
-        queue = [] + [curr_process]
-        event = "Process " + curr_process.process_id + " arrived; added to ready queue"
+        sorted_arrival_times = sorted(self.processes, key=lambda process: process.arrival_time)
+
+
+        # take the first element in the arrivals and add it to the queue
+        time = sorted_arrival_times[0].arrival_time # lets have time change at the end
+        queue = [sorted_arrival_times[0]]
+        IO_block = []
+        CPU_burst = []
+        event = "Process " + sorted_arrival_times[0].process_id + " arrived; added to ready queue"
         self.print_event(time, event, [])
+        sorted_arrival_times.pop(0)
+
+        # if(queue empty & arrival_times empty & I/O block empty then loop ends & CPU_burst empty) we end
+        while(len(queue) > 0 or len(sorted_arrival_times) > 0 or len(IO_block) > 0 or len(CPU_burst) > 0):
+            # if CPU available then we start running next process in CPU, we want this to happen immediately after arrival
+            if (len(CPU_burst) > 0 and queue[0].burst_index < len(queue[0].CPU_burst_times)):
+                CPU_burst.append(queue[0])
+                queue.pop(0)
+                event = "Process " + CPU_burst[0].process_id + " started using the CPU for " + str(CPU_burst[0].CPU_burst_times[CPU_burst[0].burst_index]) + "ms burst"
+                self.print_event(time + 2, event, queue) # I think 2ms is the overhead
+                CPU_burst[0].burst_index += 1
+
+            # Loop through the arrivals list checking to see if they happen before the next process, CPU or I/O
+            while (len(sorted_arrival_times) > 0):
+                output = False
+                before_CPU_burst = len(CPU_burst) > 0 and sorted_arrival_times[0].arrival_time <= time + CPU_burst[0].CPU_burst_times[CPU_burst[0].burst_index]
+                before_IO = len(IO_block) > 0 and sorted_arrival_times[0].arrival_time <= time + IO_block[0].IO_burst_times[IO_block[0].IO_index]
+
+                # check that arrival happens before I/O and CPU Burst end when both lists have data
+                if(before_CPU_burst and before_IO):
+                    output = True
+                elif (len(CPU_burst) > 0 and before_CPU_burst == False):
+                    break
+                elif (len(IO_block) > 0 and before_IO == False):
+                    break
+
+                if(output):
+                    # We add it to the queue
+                    queue.append(sorted_arrival_times[0])
+                    event = "Process " + sorted_arrival_times[0].process_id + " arrived; added to ready queue"
+                    self.print_event(sorted_arrival_times[0].arrival_time, event, queue)
+                    sorted_arrival_times.pop(0)
+                else:
+                    break
+
+            break
+
+            # now we check if an I/O operation is going to end before the CPU burst
+            # while(len(IO_block) > 0 and IO_block[0].IO_burst_times[IO_block[0].iteration] <= CPU_burst[0].CPU_burst_times[CPU_burst[0].burst_index]):
+            #     queue.append(IO_block[0])
+            #     event = "Process " + IO_block[0].process_id + " completed I/O; added to ready queue"
+            #     self.print_event(time + IO_block[0].IO_burst_times[IO_block[0].iteration], event, queue)
+            #     IO_block.pop(0)
+            #     IO_block[0].IO_index += 1
+
+            # Handle CPU process finished
 
 
 
 
+        # Start with arrival times, compare all the arrival times and list them in order
+        
+
+        # We always start with the arrival and with a CPU process, then we list the processes that go in and out
+        # of CPU bursts and I/O blocking. 
+        # -- We will have to perform time comparisons to see which print statement will come first
+
+        # We end on a CPU burst
 
 
 
