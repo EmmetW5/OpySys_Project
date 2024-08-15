@@ -107,22 +107,29 @@ class CPU:
 
     # Calls all the simulation methods, and keeps track of required statistics
     def run_simulation(self):
-        pass
-    
+        self.FCFS()
+        self.SJF()
+        self.SRT()
+        self.RR()
 
-    
     # The FCFS algorithm is a non-preemptive algorithm in which processes simply line up in the ready
     # queue, waiting to use the CPU. This is your baseline algorithm.
     def FCFS(self):
-        time = 0
-        queue = []
-        self.print_event(time, "Simulator started for FCFS", queue)
-        
-        
-        
-        
-        
-    
+        # print initial state and arrival time
+        self.print_event(0, "Simulator started for FCFS", [])
+
+        curr_process = self.processes[0]
+        time = curr_process.arrival_time
+        queue = [] + [curr_process]
+        event = "Process " + curr_process.process_id + " arrived; added to ready queue"
+        self.print_event(time, event, [])
+
+
+
+
+
+
+
     # In SJF, processes are stored in the ready queue in order of priority based on their anticipated CPU
     # burst times. More specifically, the process with the shortest predicted CPU burst time will be
     # selected as the next process executed by the CPU. SJF is non-preemptive.\
@@ -179,12 +186,19 @@ class CPU:
                 cpu_bound_avg_cpu_burst_time = 0
 
                 temp_denom = sum([len(process.CPU_burst_times) for process in self.processes if process.is_IO_bound])
-                io_bound_avg_cpu_burst_time = sum_io_bound_cpu_burst_time / temp_denom
+                if (temp_denom > 0):
+                    io_bound_avg_cpu_burst_time = sum_io_bound_cpu_burst_time / temp_denom
+                else:
+                    io_bound_avg_cpu_burst_time = 0
                 overall_avg_cpu_burst_time = io_bound_avg_cpu_burst_time
                 cpu_bound_avg_io_burst_time = 0
 
                 temp_denom = sum([len(process.IO_burst_times) for process in self.processes if process.is_IO_bound])
-                io_bound_avg_io_burst_time = sum_io_bound_io_burst_time / temp_denom
+                if (temp_denom > 0):
+                    io_bound_avg_io_burst_time = sum_io_bound_io_burst_time / temp_denom
+                else:
+                    io_bound_avg_io_burst_time = 0
+
                 overall_avg_io_burst_time = io_bound_avg_io_burst_time
 
             else:
@@ -261,7 +275,7 @@ class CPU:
 
             # legacy code for part I, no longer needed to output here in this format
 
-            # # Print the CPU and IO burst times
+            # Print the CPU and IO burst times
             # for i in range(len(process.CPU_burst_times)):
             #     if(i == len(process.CPU_burst_times) - 1):
             #         print(f"==> CPU burst {process.CPU_burst_times[i]}ms")
@@ -277,7 +291,7 @@ class CPU:
         return f"{letter}{number}"
 
     # Prints the input parameters in the required format for the start of the terminal output
-    def print_input(self):
+    def print_input_p1(self):
         # part I stuff
         print("<<< PROJECT PART I")
         if(self.num_cpu_bound == 1):
@@ -285,14 +299,13 @@ class CPU:
         else:
             print(f"<<< -- process set (n={self.num_processes}) with {self.num_cpu_bound} CPU-bound processes")
         print(f"<<< -- seed={self.seed}; lambda={self.lambda_val:.6f}; bound={self.upper_bound}")
-        print()
         
+    def print_input_p2(self):
         # part II stuff
-        print("<<< PROJECT PART II")
-        print("<<< -- t_cs={self.context_switch}ms; alpha={self.alpha:.2f}; t_slice={self.time_slice}ms")
+        print("\n<<< PROJECT PART II")
+        print(f"<<< -- t_cs={self.context_switch}ms; alpha={self.alpha:.2f}; t_slice={self.time_slice}ms")
+
         
-
-
 def check_input(num_processes, num_cpu_bound, seed, lambda_val, upper_bound, context_switch, alpha, time_slice):
     if(num_processes <= 0 or num_processes > 260):
         sys.stderr.write("ERROR: <Invalid number of processes>")
@@ -317,34 +330,38 @@ def check_input(num_processes, num_cpu_bound, seed, lambda_val, upper_bound, con
         sys.exit(1)
 
     
-
 # -----------------------------------------------------------------
 #           MAIN 
 # -----------------------------------------------------------------
+if __name__ == "__main__":
+    if(len(sys.argv) != 9):
+        sys.stderr.write("ERROR: <Incorrect number of arguments>")
+        sys.exit(1)
 
-if(len(sys.argv) != 6):
-    sys.stderr.write("ERROR: <Incorrect number of arguments>")
-    sys.exit(1)
+    # Get the input parameters
+    num_processes = int(sys.argv[1])
+    num_cpu_bound = int(sys.argv[2])
+    seed = int(sys.argv[3])
+    lambda_val = float(sys.argv[4])
+    upper_bound = int(sys.argv[5])
 
-# Get the input parameters
-num_processes = int(sys.argv[1])
-num_cpu_bound = int(sys.argv[2])
-seed = int(sys.argv[3])
-lambda_val = float(sys.argv[4])
-upper_bound = int(sys.argv[5])
-
-# implement error checking on the new inputs!!
-context_switch = int(sys.argv[6])
-alpha = float(sys.argv[7])
-time_slice = int(sys.argv[8])
+    # implement error checking on the new inputs!!
+    context_switch = int(sys.argv[6])
+    alpha = float(sys.argv[7])
+    time_slice = int(sys.argv[8])
 
 
-# Check the input parameters
-check_input(num_processes, num_cpu_bound, seed, lambda_val, upper_bound)
+    # Check the input parameters
+    check_input(num_processes, num_cpu_bound, seed, lambda_val, upper_bound, context_switch, alpha, time_slice)
 
-# Create the CPU object and generate the output
-cpu = CPU(num_processes, num_cpu_bound, seed, lambda_val, upper_bound, context_switch, alpha, time_slice)
-cpu.print_input()
-cpu.generate_processes()
-cpu.print_processes()
-cpu.write_output()
+    # Create the CPU object and generate the output
+    cpu = CPU(num_processes, num_cpu_bound, seed, lambda_val, upper_bound, context_switch, alpha, time_slice)
+    cpu.print_input_p1()
+    cpu.generate_processes()
+    cpu.print_processes() # for part 1
+
+    # Run simulation and output for part 2
+    cpu.print_input_p2()
+    cpu.run_simulation()
+    cpu.write_output()
+    print()
