@@ -129,58 +129,89 @@ class CPU:
         IO_block = []
         CPU_burst = []
         event = "Process " + sorted_arrival_times[0].process_id + " arrived; added to ready queue"
-        self.print_event(time, event, [])
+        self.print_event(time, event, queue)
         sorted_arrival_times.pop(0)
 
         # if(queue empty & arrival_times empty & I/O block empty then loop ends & CPU_burst empty) we end
+        itr = 0
         while(len(queue) > 0 or len(sorted_arrival_times) > 0 or len(IO_block) > 0 or len(CPU_burst) > 0):
             # if CPU available then we start running next process in CPU, we want this to happen immediately after arrival
-            if (len(CPU_burst) == 0 and queue[0].burst_index < len(queue[0].CPU_burst_times)):
+            if (len(CPU_burst) == 0 and len(queue) > 0 and queue[0].burst_index < len(queue[0].CPU_burst_times)):
                 CPU_burst.append(queue[0])
                 queue.pop(0)
                 event = "Process " + CPU_burst[0].process_id + " started using the CPU for " + str(CPU_burst[0].CPU_burst_times[CPU_burst[0].burst_index]) + "ms burst"
                 self.print_event(time + 2, event, queue) # I think 2ms is the overhead
-                CPU_burst[0].burst_index += 1
 
             # Loop through the arrivals list checking to see if they happen before the next process, CPU or I/O
             while (len(sorted_arrival_times) > 0):
-                output = False
                 before_CPU_burst = len(CPU_burst) > 0 and sorted_arrival_times[0].arrival_time <= time + CPU_burst[0].CPU_burst_times[CPU_burst[0].burst_index]
+                # print("before_CPU_burst:", before_CPU_burst)
                 before_IO = len(IO_block) > 0 and sorted_arrival_times[0].arrival_time <= time + IO_block[0].IO_burst_times[IO_block[0].IO_index]
+                # print("before_IO:", before_IO)
 
                 # check that arrival happens before I/O and CPU Burst end when both lists have data
-                if(before_CPU_burst and before_IO):
-                    output = True
-                elif (len(CPU_burst) > 0 and before_CPU_burst == False):
+                if (len(CPU_burst) > 0 and before_CPU_burst == False):
                     break
                 elif (len(IO_block) > 0 and before_IO == False):
                     break
 
-                if(output):
-                    # We add it to the queue
-                    queue.append(sorted_arrival_times[0])
-                    event = "Process " + sorted_arrival_times[0].process_id + " arrived; added to ready queue"
-                    self.print_event(sorted_arrival_times[0].arrival_time, event, queue)
-                    sorted_arrival_times.pop(0)
-                else:
-                    break
+                # We add it to the queue
+                queue.append(sorted_arrival_times[0])
+                event = "Process " + sorted_arrival_times[0].process_id + " arrived; added to ready queue"
+                self.print_event(sorted_arrival_times[0].arrival_time, event, queue)
+                sorted_arrival_times.pop(0)
 
 
             # now we check if an I/O operation is going to end before the CPU burst
-            while(len(IO_block) > 0 and IO_block[0].IO_burst_times[IO_block[0].iteration] <= CPU_burst[0].CPU_burst_times[CPU_burst[0].burst_index]):
+            while(len(IO_block) > 0 and IO_block[0].IO_index < len(IO_block[0].IO_burst_times)):
+                before_CPU_burst = len(CPU_burst) > 0 and IO_block[0].IO_burst_times[IO_block[0].IO_index] <= CPU_burst[0].CPU_burst_times[CPU_burst[0].burst_index]
+
+                if (len(CPU_burst) > 0 and before_CPU_burst == False): # before_CPU_bursts evaluates to false despite the list not being empty
+                    break
+
                 queue.append(IO_block[0])
                 event = "Process " + IO_block[0].process_id + " completed I/O; added to ready queue"
-                self.print_event(time + IO_block[0].IO_burst_times[IO_block[0].iteration], event, queue)
-                IO_block.pop(0)
+                self.print_event(time + IO_block[0].IO_burst_times[IO_block[0].IO_index], event, queue)
                 IO_block[0].IO_index += 1
+                IO_block.pop(0)
 
-            # Handle CPU process finished
-            # if(len(CPU_burst) > 0 and CPU_burst[0].burst_index == len(CPU_burst[0].CPU_burst_times)):
+            # 2nd time
+            # Loop through the arrivals list checking to see if they happen before the next process, CPU or I/O
+            while (len(sorted_arrival_times) > 0):
+                before_CPU_burst = len(CPU_burst) > 0 and sorted_arrival_times[0].arrival_time <= time + CPU_burst[0].CPU_burst_times[CPU_burst[0].burst_index]
+                before_IO = len(IO_block) > 0 and sorted_arrival_times[0].arrival_time <= time + IO_block[0].IO_burst_times[IO_block[0].IO_index]
+
+                # check that arrival happens before I/O and CPU Burst end when both lists have data
+                if (len(CPU_burst) > 0 and before_CPU_burst == False):
+                    break
+                elif (len(IO_block) > 0 and before_IO == False):
+                    break
+
+                # We add it to the queue
+                queue.append(sorted_arrival_times[0])
+                event = "Process " + sorted_arrival_times[0].process_id + " arrived; added to ready queue"
+                self.print_event(sorted_arrival_times[0].arrival_time, event, queue)
+                sorted_arrival_times.pop(0)
+
+
+            # Handle CPU process finished, add it to the IO bound
+            if(len(CPU_burst) > 0):
+                IO_block.append(CPU_burst[0])
+                event = "Process " + CPU_burst[0].process_id + " completed a CPU burst; " + str(len(CPU_burst[0].CPU_burst_times) - CPU_burst[0].burst_index) + " bursts to go"
+                self.print_event(time + CPU_burst[0].CPU_burst_times[CPU_burst[0].burst_index], event, queue)
+                time += CPU_burst[0].CPU_burst_times[CPU_burst[0].burst_index]
+                CPU_burst[0].burst_index += 1
+                CPU_burst.pop(0)
+
+            itr += 1
+
+            if (itr > 60):
+                break
 
 
 
 
-            break
+            
 
 
 
@@ -222,10 +253,10 @@ class CPU:
         # convert the current contents of the queue to a string
         queue_string = ""
         for process in queue:
-            queue_string += process.process_id + " "
+            queue_string += " " + process.process_id
         if (len(queue) == 0):
-            queue_string = "empty"
-        print(f"time {time}ms: {event_details} [Q {queue_string}]")
+            queue_string = " empty"
+        print(f"time {time}ms: {event_details} [Q{queue_string}]")
 
     # Writes the summary statistics to the output file in the required format
     # This thing is a bear fr fr
