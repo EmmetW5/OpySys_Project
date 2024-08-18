@@ -32,9 +32,10 @@ class Process:
         self.is_IO_bound = is_IO_bound
         
         # Edited In Functions
-        self.burst_index = 0
-        self.IO_index = 0
-        self.IO_unblocked = 0 # time that this process is no longer blocked
+        self.burst_index = 0      # index of current Burst time, used in all
+        self.IO_index = 0         # index of current IO Block Time, used in all
+        self.IO_unblocked = 0     # time that this process is no longer blocked used in FCFS,
+        self.remaining_time = []  # time process need to finish burst used in RR,
 
 # CPU class to store the inputs and generate the processes with the given seed and lambda values.
 # The CPU class generates the processes and stores them in a list.
@@ -222,8 +223,8 @@ class CPU:
     
     # Calls all the simulation methods, and keeps track of required statistics
     def run_simulation(self):
-        self.FCFS()
-        print()
+        #self.FCFS()
+        #print()
         self.SJF()
         print()
         self.SRT()
@@ -425,7 +426,23 @@ class CPU:
         # Fix Changed Variables :)
         self.processes.clear()
         self.generate_processes()
+
         
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     
     ############################################################################################################
     ###################                             SJF                                      ###################
@@ -433,11 +450,11 @@ class CPU:
 
     # In SJF, processes are stored in the ready queue in order of priority based on their anticipated CPU
     # burst times. More specifically, the process with the shortest predicted CPU burst time will be
-    # selected as the next process executed by the CPU. SJF is non-preemptive.\
+    # selected as the next process executed by the CPU. SJF is non-preemptive.
     def SJF(self):
         pass
     
-    
+
     ############################################################################################################
     ###################                             SRT                                      ###################
     ############################################################################################################
@@ -449,7 +466,37 @@ class CPU:
     # burst time.
     def SRT(self):
         pass
-    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     
     ############################################################################################################
     ###################                              RR                                      ###################
@@ -461,7 +508,159 @@ class CPU:
     # If a process completes its CPU burst before a time slice expiration, the next process on the ready
     # queue is context-switched in to use the CPU.
     def RR(self):
-        pass
+        # copy of burst times, so we can decrement them while saving orginal
+        for p in self.processes:
+            for time in p.CPU_burst_times:
+                p.remaining_time.append(time)
+        
+        # loop Variables
+        sorted_process = sorted(self.processes, key=lambda process: process.arrival_time)
+        IO_block = []                    # processes that are IO and will return
+        queue = []                       # processes that are ready to Run
+        itr = 0                          # Current Time
+        
+        cpu_free = True                  # Nothing is running On CPU
+        running_process: Process = None  # Process Running On CPU
+        remove_time = -1                 # Time to remove a process
+        
+        context_switch_delay = False
+        context_switch_add_IO = False
+        context_switch_delay_itr = -1
+
+        self.print_event(itr, "Simulator started for RR", queue)
+        while(queue or IO_block or sorted_process or running_process):
+        # Normal Arrival
+            # Next Process is ready to Arrive add to Queue
+            # Arrivals Do Not Effect Time at which processes are Unblocked or Removed or added
+            if(sorted_process and sorted_process[0].arrival_time == itr):
+                p: Process = sorted_process[0]
+                queue.append(p)
+                sorted_process.pop(0)
+                
+                event = "Process " + p.process_id + " arrived; added to ready queue"
+                self.print_event(itr, event, queue)
+                continue
+            
+        # IO Unblock
+            # IO Unblock Add To Queue ( IO_Block is sorted by eairliest Unblock Time)
+            # UnBlocks Do Not Effect Time at which processes are Unblocked or Removed or Added
+            if(IO_block and IO_block[0].IO_unblocked == itr):
+                p: Process = IO_block[0]
+                queue.append(p)
+                IO_block.pop(0)
+                
+                event = "Process " + p.process_id + " completed I/O; added to ready queue"
+                self.print_event(p.IO_unblocked, event, queue)
+                continue
+            
+        
+        # Handle Cpu Burst Remove
+            # Removals Do Not Effect Time at which processes are Unblocked or Removed
+            # Adds Half Context Switch Delay to Add Time
+            if(not cpu_free and remove_time == itr):
+                p: Process = running_process
+                
+                if(p.remaining_time[p.burst_index] - self.time_slice <= 0):
+                    # Finsihed Burst
+                    p.burst_index += 1
+                    if(len(p.CPU_burst_times)-p.burst_index == 0):
+                        # Termination Case
+                        event = f"Process {p.process_id} terminated"
+                        queue_string = " ".join(process.process_id for process in queue) if queue else "empty"
+                        print(f"time {itr}ms: {event} [Q {queue_string}]")
+                    else:
+                        # Normal Case
+                        if len(p.CPU_burst_times)-p.burst_index == 1:
+                            # 1 Bust Left
+                            event = f"Process {p.process_id} completed a CPU burst; {len(p.CPU_burst_times) - p.burst_index} burst to go"
+                        else:
+                            # ? Bursts left
+                            event = f"Process {p.process_id} completed a CPU burst; {len(p.CPU_burst_times) - p.burst_index} bursts to go"
+                        
+                        # Calculate The Unblock Time and Add to IO Block, if theres more to do, 1 burst has no next IO Block Time
+                        if(p.IO_index in range(len(p.IO_burst_times))):
+                            p.IO_unblocked = remove_time + p.IO_burst_times[p.IO_index] + int(self.context_switch / 2)
+                            IO_block.append(p)
+                            IO_block.sort(key=lambda process: process.IO_unblocked)
+                            p.IO_index += 1
+                        
+                        self.print_event(itr, event, queue)
+                        event = f"Process {p.process_id} switching out of CPU; blocking on I/O until time {p.IO_unblocked}ms"
+                        self.print_event(itr, event, queue)
+                    
+                    running_process = None
+                    cpu_free = True
+                    context_switch_add_IO = True
+                elif(queue):
+                    # Preemed and Something to replace it
+                    event = f"Time slice expired; preempting process {p.process_id} with {p.remaining_time[p.burst_index] - self.time_slice}ms remaining"
+                    self.print_event(itr, event, queue)
+                    p.remaining_time[p.burst_index] -= self.time_slice
+                    queue.append(p)
+                
+                    running_process = None
+                    cpu_free = True
+                    context_switch_add_IO = True
+                else:
+                    # Preemed, but Nothing to replace it
+                    event = f"Time slice expired; no preemption because ready queue is empty"
+                    self.print_event(itr, event, queue)
+                    p.remaining_time[p.burst_index] -= self.time_slice
+                    if(self.time_slice < p.remaining_time[p.burst_index]):
+                        remove_time += self.time_slice
+                    else:
+                        remove_time += p.remaining_time[p.burst_index]
+                continue
+            
+            
+        # Handle CPU Addition context Switch
+            if(queue and cpu_free and not context_switch_delay):
+                # calculate the Time To Add Next Prossess
+                if(context_switch_add_IO and remove_time == itr):
+                    context_switch_delay_itr = itr + int(self.context_switch)
+                else:
+                    context_switch_delay_itr = itr + int(self.context_switch / 2)
+
+                context_switch_delay = True
+                context_switch_add_IO = False
+                continue
+            
+            
+        # Handle Add Process To Cpu
+            # Calculates Remove Time
+            # Calculates Unblock Time Aswell and Stores in Each Process
+            if(itr == context_switch_delay_itr and context_switch_delay):
+                # Remove Process From Queue
+                p: Process = queue[0]
+                queue.pop(0)
+
+                # Print and Calculate Remove Time
+                if(p.remaining_time[p.burst_index] == p.CPU_burst_times[p.burst_index]):
+                    event = f"Process {p.process_id} started using the CPU for {p.CPU_burst_times[p.burst_index]}ms burst"
+                else:
+                    event = f"Process {p.process_id} started using the CPU for remaining {p.remaining_time[p.burst_index]}ms of {p.CPU_burst_times[p.burst_index]}ms burst"
+                self.print_event(itr, event, queue)
+                if(self.time_slice < p.remaining_time[p.burst_index]):
+                    remove_time = itr + self.time_slice
+                else:
+                    remove_time = itr + p.remaining_time[p.burst_index]
+                # change Current Running Process
+                running_process = p
+                cpu_free = False
+                
+                context_switch_delay = False
+                continue
+            
+            itr += 1
+        event = f"Simulator ended for RR"
+        print(f"time {remove_time + int(self.context_switch / 2)}ms: {event} [Q {queue_string}]")
+        
+        # Fix Changed Variables :)
+        self.processes.clear()
+        self.generate_processes()
+        
+        
+        
     
     
 
