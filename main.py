@@ -233,60 +233,14 @@ class CPU:
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     ############################################################################################################
     ###################                             FCFS                                     ###################
     ############################################################################################################
 
 
-    def print_event(self, time, event_details, queue):
+    def print_event(self, time, event_details, queue, end_of_process=False):
+        if(time > 9999 and not end_of_process):
+            return
         # Convert the current contents of the queue to a string
         queue_string = " ".join(process.process_id for process in queue) if queue else "empty"
         print(f"time {time}ms: {event_details} [Q {queue_string}]")
@@ -313,7 +267,7 @@ class CPU:
         
         
 
-        # if(queue empty & arrival_times empty & I/O block empty & CPU_burst empty) then loop ends (itr > 150000 infinte looping)
+        # if(queue empty & arrival_times empty & I/O block empty & CPU_burst empty) then loop ends (itr > 150000 infinite looping)
         self.print_event(itr, "Simulator started for FCFS", queue)
         while((queue or IO_block or CPU_burst or sorted_process) and itr < 21217):
             # Next Process is ready to Arrive add to Queue
@@ -348,7 +302,7 @@ class CPU:
                 if(len(running_process.CPU_burst_times)-running_process.burst_index == 0):
                     # Termination Case
                     event = f"Process {running_process.process_id} terminated"
-                    self.print_event(itr, event, queue)
+                    self.print_event(itr, event, queue, True)
                 
                 elif(len(running_process.CPU_burst_times)-running_process.burst_index == 1):
                     # 1 Bust Left 
