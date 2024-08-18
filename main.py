@@ -369,7 +369,7 @@ class CPU:
         
         # Terminate Last Process and End Loop
         event = f"Process {running_process.process_id} terminated"
-        self.print_event(remove_time,event,queue)
+        self.print_event(remove_time,event,queue, True)
         event = f"Simulator ended for FCFS"
         self.print_event(remove_time + int(self.context_switch / 2), event, queue)
         
