@@ -288,9 +288,10 @@ class CPU:
 
     def print_event(self, time, event_details, queue):
         # Convert the current contents of the queue to a string
-        queue_string = " ".join(process.process_id for process in queue) if queue else "empty"
-        print(f"time {time}ms: {event_details} [Q {queue_string}]")
-    
+        if(time < 10000):
+            queue_string = " ".join(process.process_id for process in queue) if queue else "empty"
+            print(f"time {time}ms: {event_details} [Q {queue_string}]")
+        
     # The FCFS algorithm is a non-preemptive algorithm in which processes simply line up in the ready
     # queue, waiting to use the CPU. This is your baseline algorithm.
     # Potential Error, We assume nothing happens during a context Switch!!!!!!
@@ -315,7 +316,7 @@ class CPU:
 
         # if(queue empty & arrival_times empty & I/O block empty & CPU_burst empty) then loop ends (itr > 150000 infinte looping)
         self.print_event(itr, "Simulator started for FCFS", queue)
-        while((queue or IO_block or CPU_burst or sorted_process) and itr < 21217):
+        while(queue or IO_block or CPU_burst or sorted_process):
             # Next Process is ready to Arrive add to Queue
             # Arrivals Do Not Effect Time at which processes are Unblocked or Removed or added
             if(sorted_process and sorted_process[0].arrival_time == itr):
@@ -348,7 +349,8 @@ class CPU:
                 if(len(running_process.CPU_burst_times)-running_process.burst_index == 0):
                     # Termination Case
                     event = f"Process {running_process.process_id} terminated"
-                    self.print_event(itr, event, queue)
+                    queue_string = " ".join(process.process_id for process in queue) if queue else "empty"
+                    print(f"time {itr}ms: {event} [Q {queue_string}]")
                 
                 elif(len(running_process.CPU_burst_times)-running_process.burst_index == 1):
                     # 1 Bust Left 
@@ -414,10 +416,11 @@ class CPU:
             itr += 1
         
         # Terminate Last Process and End Loop
+        queue_string = " ".join(process.process_id for process in queue) if queue else "empty"
         event = f"Process {running_process.process_id} terminated"
-        self.print_event(remove_time,event,queue)
+        print(f"time {remove_time}ms: {event} [Q {queue_string}]")
         event = f"Simulator ended for FCFS"
-        self.print_event(remove_time + int(self.context_switch / 2), event, queue)
+        print(f"time {remove_time + int(self.context_switch / 2)}ms: {event} [Q {queue_string}]")
         
         # Fix Changed Variables :)
         self.processes.clear()
